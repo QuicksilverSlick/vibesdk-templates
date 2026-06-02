@@ -1,0 +1,57 @@
+name: Notify dreamforge-cf to deploy templates
+
+# When template sources change on main, ask dreamforge-cf to (re)deploy the
+# templates to its R2 bucket via deploy-templates.yml (repository_dispatch).
+#
+# This repo does NOT hold the Cloudflare R2 credentials — dreamforge-cf does.
+# So we trigger dreamforge-cf's workflow rather than uploading from here.
+#
+# SETUP (one-time): add a `DISPATCH_TOKEN` secret under this repo's
+# Settings -> Secrets and variables -> Actions. It must be a GitHub token that
+# can POST a repository_dispatch to QuicksilverSlick/dreamforge-cf:
+#   - classic PAT with `repo` scope, OR
+#   - fine-grained PAT scoped to dreamforge-cf with Contents: read & write.
+# Without it this job no-ops with a warning; deploy manually via
+# deploy-templates.yml (workflow_dispatch) in dreamforge-cf.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'definitions/**'
+      - 'reference/**'
+      - 'tools/**'
+      - 'deploy_templates.sh'
+      - 'create_zip.py'
+      - 'generate_template_catalog.py'
+      - 'template_schema.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Dispatch template deploy to dreamforge-cf
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deploy-templates.yml in dreamforge-cf
+        env:
+          DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+        run: |
+          if [ -z "${DISPATCH_TOKEN:-}" ]; then
+            echo "::warning::DISPATCH_TOKEN not set — cannot trigger dreamforge-cf. Run deploy-templates.yml manually (workflow_dispatch)."
+            exit 0
+          fi
+          code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $DISPATCH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/QuicksilverSlick/dreamforge-cf/dispatches" \
+            -d "{\"event_type\":\"templates-updated\",\"client_payload\":{\"ref\":\"${GITHUB_SHA}\"}}")
+          echo "repository_dispatch -> HTTP $code"
+          if [ "$code" != "204" ]; then
+            echo "::error::repository_dispatch failed (HTTP $code). Check DISPATCH_TOKEN scope/expiry."
+            exit 1
+          fi
+          echo "✅ Triggered dreamforge-cf deploy-templates for ${GITHUB_SHA}"
