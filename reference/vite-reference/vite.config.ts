@@ -94,7 +94,11 @@ function reloadTriggerPlugin() {
       server.watcher.on("change", (filePath: string) => {
         if (filePath === triggerFile || filePath.endsWith(".reload-trigger")) {
           logger.info("Reload triggered via .reload-trigger");
-          server.ws.send({ type: "full-reload" });
+          // HMR is disabled for the proxied preview, so `server.ws` is a no-op
+          // and this broadcast never reached the browser anyway (the platform
+          // reloads the preview iframe after each deploy instead). Guard the
+          // call so a `.reload-trigger` write can't throw.
+          server.ws?.send?.({ type: "full-reload" });
         }
       });
     },
@@ -122,6 +126,14 @@ export default ({ mode }: { mode: string }) => {
     },
     server: {
       allowedHosts: true,
+      // The preview runs behind the `<port>-<id>-<token>.app.getdreamforge.com`
+      // sandbox proxy, which does not carry Vite's HMR WebSocket. Leaving HMR on
+      // makes the client churn forever ("[vite] server connection lost. Polling
+      // for restart...") and floods the console. The hosted preview is for
+      // viewing/playing, not in-browser editing — change-refreshes come from the
+      // platform reloading the iframe after each deploy — so disable HMR
+      // entirely to kill the churn.
+      hmr: false,
       watch: {
         awaitWriteFinish: {
           stabilityThreshold: 150,
