@@ -1,0 +1,21 @@
+name: "vite-cf-d1-runner"
+description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) database via Drizzle ORM and email/password authentication via better-auth. Preview and production share the same database, so data persists across deploy."
+base_reference: "vite-reference"
+projectType: app
+
+# Deep-merged into the reference package.json (inherit_dependencies defaults true).
+package_patches:
+  name: "vite-cf-d1-runner"
+  dependencies:
+    better-auth: "^1.6.23"
+    drizzle-orm: "^0.45.2"
+  devDependencies:
+    drizzle-kit: "^0.31.10"
+    # Pinned exact: remote bindings require the current toolchain, and floating
+    # these versions has broken template builds before.
+    "@cloudflare/vite-plugin": "1.43.0"
+    wrangler: "4.107.0"
+  scripts:
+    db:generate: "drizzle-kit generate"
+    db:migrate:local: "wrangler d1 migrations apply vibesdk-app-db --local"
+    db:migrate:remote: "wrangler d1 migrations apply vibesdk-app-db --remote"

@@ -1,0 +1,34 @@
+/**
+ * Wrangler config for the Cloudflare D1 + better-auth template.
+ * STRICTLY DO NOT MODIFY THIS FILE - Hidden from AI to prevent breaking core functionality.
+ *
+ * The D1 database is bound as `DB` with `remote: true`, so the local dev/preview
+ * server reads and writes the REAL database — preview data is production data.
+ * `database_id` is substituted by the platform at provision time ({{D1_ID}}).
+ */
+ {
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "vite-cf-d1-runner",
+	"main": "worker/index.ts",
+	"compatibility_date": "2025-06-01",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		"not_found_handling": "single-page-application",
+		"run_worker_first": ["/api/*", "!/api/docs/*"]
+	},
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "vibesdk-app-db",
+			"database_id": "{{D1_ID}}",
+			"migrations_dir": "migrations",
+			"remote": true
+		}
+	],
+	"vars": {
+		"BETTER_AUTH_URL": "http://localhost:3000"
+	}
+}

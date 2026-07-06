@@ -127,6 +127,44 @@
     }
   },
   {
+    "name": "vite-cf-d1-runner",
+    "language": "typescript",
+    "frameworks": [
+      "@dnd-kit",
+      "@hookform/resolvers",
+      "autoprefixer",
+      "class-variance-authority",
+      "cloudflare",
+      "clsx",
+      "cmdk",
+      "date-fns",
+      "drizzle",
+      "framer-motion",
+      "hono",
+      "immer",
+      "input-otp",
+      "next",
+      "postcss",
+      "react",
+      "recharts",
+      "sonner",
+      "tailwind",
+      "tw-animate-css",
+      "typescript",
+      "vaul",
+      "vite",
+      "wrangler",
+      "zod",
+      "zustand"
+    ],
+    "projectType": "app",
+    "disabled": false,
+    "description": {
+      "selection": "# Template Selection\n\nA full-stack Vite/React app on Cloudflare Workers backed by a **real D1 (SQLite) database** through Drizzle ORM, with **email/password authentication** already wired via better-auth. The database is bound live in preview, so any data created while building — accounts, records, uploads — is real and carries straight through to production. No rebuild, no separate staging database.\n\nUse when:\n- The app stores persistent, structured, relational data (users, posts, orders, bookings, messages, tasks…)\n- The app has (or might grow) user accounts, sign-in, or per-user data\n- You want a genuine SQL database and query layer, not key-value or in-memory storage\n- SaaS apps, dashboards, CRMs, marketplaces, social apps, internal tools\n\nPrefer this over the Durable-Object storage template whenever the data is relational or the app needs authentication.\n\nAvoid when:\n- Static sites / SPAs with no backend or persistence\n- SEO/SSR landing pages\n- Realtime coordination as the core need (websockets, presence, live cursors) with little relational data — a Durable Object fits better\n\nBuilt with:\n- React Router, ShadCN UI, Tailwind, Lucide Icons, ESLint, Vite\n- Cloudflare Workers + Hono\n- Cloudflare D1 (SQLite) + Drizzle ORM\n- better-auth (email + password) on the same D1",
+      "usage": "# Usage\n\n## Overview\nCloudflare Workers + React with a **real D1 (SQLite) database** and **email/password auth** already wired.\n- Frontend: React Router 6 + TypeScript + ShadCN UI\n- Backend: Hono Worker\n- Database: Cloudflare D1 via Drizzle ORM (`worker/db/schema.ts`)\n- Auth: better-auth on the same D1, mounted at `/api/auth/*`\n\nThe database is bound with `remote: true`, so **the preview you build against is the real database**. Anything you or a tester creates while building — accounts, records — persists into production on deploy. There is no separate staging DB and no data migration step.\n\n## ⚠️ IMPORTANT: Demo Content\nThe `tasks` table, the `/api/tasks` routes, and `src/lib/api-client.ts` are an **example** of an authenticated per-user resource. Replace them with your app's real tables and routes. Keep the `user`/`session`/`account`/`verification` tables — better-auth requires them.\n\n## Authentication — use it only when the app needs accounts\nbetter-auth is fully wired and ready, but **do not add login/signup UI to an app that doesn't need user accounts.** Decide from what you're building:\n- A personal tool, a calculator, a single-user dashboard, a static-feeling app → **skip auth entirely.** Just use the database; don't render sign-in.\n- A multi-user app, anything with \"my\" data, accounts, sharing, or per-person state → **use auth.** Add sign-up/sign-in screens with `@/lib/auth-client` and gate your data routes on the session (see `worker/userRoutes.ts`).\n\nWhen you do need it:\n- Client: `import { signIn, signUp, signOut, useSession } from '@/lib/auth-client';`\n- Server: `const session = await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });` then `session.user.id`.\n- Sign-up/sign-in are email + password out of the box. Social providers are off; enable them in `worker/auth.ts` only if asked.\n\n## The database\n- **Schema**: `worker/db/schema.ts` (Drizzle). Add tables here. Foreign-key user-owned rows to `user.id`.\n- **Queries**: `const db = drizzle(c.env.DB, { schema });` then Drizzle query builder (`db.select()...`, `db.insert()...`). Never hand-write raw SQL with string interpolation.\n- **Migrations**: after changing the schema, run `bun run db:generate` (writes SQL to `migrations/`) then `bun run db:migrate:remote` (applies it to the real D1). The initial migration (`migrations/0001_init.sql`) is already applied at provision time.\n\n## Development Restrictions\n- **CANNOT modify `wrangler.jsonc`** — the `DB` binding, `remote: true`, and `nodejs_compat` are required and hidden from you.\n- **CANNOT modify `worker/core-utils.ts`** — it declares the `Env` (DB, auth secret, auth URL).\n- **CANNOT modify `worker/index.ts`** — add routes in `worker/userRoutes.ts` only.\n- **Tailwind Colors**: hardcode custom colors in `tailwind.config.js`, NOT in `index.css`.\n- **Components**: use existing ShadCN components; import icons from `lucide-react`.\n- **Error Handling**: ErrorBoundary components are pre-implemented.\n\n## Code Organization\n### Backend (`worker/`)\n- `worker/userRoutes.ts` — your API routes (+ the auth mount and example tasks routes)\n- `worker/auth.ts` — the `createAuth(env)` factory (per-request)\n- `worker/db/schema.ts` — Drizzle tables (auth tables + your tables)\n- `worker/core-utils.ts` — `Env` type (do not edit)\n\n### Frontend (`src/`)\n- `src/lib/auth-client.ts` — better-auth React client (sign-in/up/out, `useSession`)\n- `src/lib/api-client.ts` — example typed fetch helper for your JSON API\n- `src/pages/`, `src/components/` — your UI (ShadCN + Tailwind)\n\n## Secrets\n`BETTER_AUTH_SECRET` is provided as a secret (not in `wrangler.jsonc`). `BETTER_AUTH_URL` is set to the app's real origin by the platform. You never manage these."
+    }
+  },
+  {
     "name": "minimal-js",
     "language": "typescript",
     "frameworks": [
