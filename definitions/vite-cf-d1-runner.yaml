@@ -3,6 +3,13 @@ description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) datab
 base_reference: "vite-reference"
 projectType: app
 
+# Disabled until CONT-2 (main repo) provisions the per-app D1, applies the
+# migration, and delivers BETTER_AUTH_SECRET/BETTER_AUTH_URL into the sandbox.
+# The catalog generator omits disabled templates entirely, so the selector
+# never offers it and no build lands on a template it can't yet provision.
+# Flip to false to begin the flag-gated soak once CONT-2 is live.
+disabled: true
+
 # Deep-merged into the reference package.json (inherit_dependencies defaults true).
 package_patches:
   name: "vite-cf-d1-runner"
