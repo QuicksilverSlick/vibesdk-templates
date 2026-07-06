@@ -95,6 +95,12 @@ echo "⚙️  Verifying Wrangler CLI..."
 wrangler --version
 echo "✅ Wrangler CLI ready"
 
+# The R2 bucket name is not secret (it is public in the app's wrangler.jsonc).
+# Default it so an unset R2_BUCKET_NAME secret does not silently produce an
+# empty "/key" object path that wrangler rejects.
+R2_BUCKET_NAME="${R2_BUCKET_NAME:-vibesdk-templates}"
+echo "🪣 R2 bucket: ${R2_BUCKET_NAME}"
+
 # Determine R2 endpoint based on LOCAL_R2 environment variable
 if [ "${LOCAL_R2:-}" = "true" ]; then
   echo "🏠 LOCAL_R2=true - using local R2 endpoint"
