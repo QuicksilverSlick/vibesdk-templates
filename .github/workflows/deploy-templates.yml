@@ -22,7 +22,16 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+
+    # deploy_templates.sh runs `generate_templates.py --sync-lockfiles`, which
+    # shells out to `bun i` to sync each template's bun.lock. Without bun on the
+    # runner that step fails with "Command not found" (exit 127) and the whole
+    # deploy aborts before anything is uploaded to R2.
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
