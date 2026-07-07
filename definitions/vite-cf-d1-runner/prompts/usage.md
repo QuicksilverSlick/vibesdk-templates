@@ -19,7 +19,7 @@ better-auth is fully wired and ready, but **do not add login/signup UI to an app
 
 When you do need it:
 - Client: `import { signIn, signUp, signOut, useSession } from '@/lib/auth-client';`
-- Server: `const session = await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });` then `session.user.id`.
+- Server: `const session = await createAuth(c.env, c.req.raw).api.getSession({ headers: c.req.raw.headers });` then `session.user.id`. **Always pass `c.req.raw` as the second argument** — `createAuth` needs the request to resolve the app's origin in preview.
 - Sign-up/sign-in are email + password out of the box. Social providers are off; enable them in `worker/auth.ts` only if asked.
 
 ## The database
@@ -38,7 +38,7 @@ When you do need it:
 ## Code Organization
 ### Backend (`worker/`)
 - `worker/userRoutes.ts` — your API routes (+ the auth mount and example tasks routes)
-- `worker/auth.ts` — the `createAuth(env)` factory (per-request)
+- `worker/auth.ts` — the `createAuth(env, request)` factory (per-request; always pass the request)
 - `worker/db/schema.ts` — Drizzle tables (auth tables + your tables)
 - `worker/core-utils.ts` — `Env` type (do not edit)
 
@@ -48,4 +48,4 @@ When you do need it:
 - `src/pages/`, `src/components/` — your UI (ShadCN + Tailwind)
 
 ## Secrets
-`BETTER_AUTH_SECRET` is provided as a secret (not in `wrangler.jsonc`). `BETTER_AUTH_URL` is set to the app's real origin by the platform. You never manage these.
+`BETTER_AUTH_SECRET` is provided as a secret (not in `wrangler.jsonc`). At deploy the platform injects `BETTER_AUTH_URL` as the app's real origin; in the preview sandbox it is still the local default, which is why `createAuth` derives the origin from the request — so always pass `c.req.raw` to it. You never manage these values directly.

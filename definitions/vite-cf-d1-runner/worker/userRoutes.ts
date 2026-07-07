@@ -13,10 +13,10 @@ import * as schema from './db/schema';
  * resource keyed to the signed-in user — replace them with your own.
  */
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
-	app.on(['GET', 'POST'], '/api/auth/*', (c) => createAuth(c.env).handler(c.req.raw));
+	app.on(['GET', 'POST'], '/api/auth/*', (c) => createAuth(c.env, c.req.raw).handler(c.req.raw));
 
 	app.get('/api/tasks', async (c) => {
-		const authSession = await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });
+		const authSession = await createAuth(c.env, c.req.raw).api.getSession({ headers: c.req.raw.headers });
 		if (!authSession) return c.json({ success: false, error: 'Unauthorized' }, 401);
 		const db = drizzle(c.env.DB, { schema });
 		const rows = await db.select().from(schema.tasks).where(eq(schema.tasks.userId, authSession.user.id));
@@ -24,7 +24,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
 	});
 
 	app.post('/api/tasks', async (c) => {
-		const authSession = await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });
+		const authSession = await createAuth(c.env, c.req.raw).api.getSession({ headers: c.req.raw.headers });
 		if (!authSession) return c.json({ success: false, error: 'Unauthorized' }, 401);
 		const body = await c.req.json<{ title?: string }>();
 		const title = body.title?.trim();
