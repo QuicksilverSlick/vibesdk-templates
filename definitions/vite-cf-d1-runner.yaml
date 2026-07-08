@@ -3,15 +3,16 @@ description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) datab
 base_reference: "vite-reference"
 projectType: app
 
-# Enabled for the flag-gated soak. The continuity arc is code-complete:
-# CONT-2 provisions + records the per-app D1 and delivers BETTER_AUTH_SECRET;
-# CONT-3B delivers BETTER_AUTH_URL at deploy; CONT-3A's authorizing proxy lets
-# the container's remote-binding preview reach Cloudflare with a scoped token;
-# CONT-4 gives the owner a Time Travel restore. Merge this ONLY once the proxy
-# infra is live (CF_PROXY_JWT_SECRET + CLOUDFLARE_API_PROXY_URL + the cf-proxy
-# custom domain) and the templates-repo deploy Actions secrets are set —
-# otherwise the selector offers a template whose preview can't provision.
-disabled: false
+# RE-DISABLED after the go-live soak: the sandbox failed to extract this
+# template in the container ("NNNNN extra bytes at beginning ... invalid zip
+# file with overlapped components") on every D1 build, so no preview could
+# start. The published R2 zip itself is valid (extracts cleanly); the corruption
+# is introduced by the sandbox's download-to-container chunked write, with the
+# growing byte count across retries pointing at an append-instead-of-truncate on
+# the larger (~167KB) D1 zip. Flip back to false only after that is fixed and a
+# fresh test build gets a working preview. The continuity infra (proxy, D1
+# provisioning, auth-secret delivery, CONT-4 restore) is all live and validated.
+disabled: true
 
 # Deep-merged into the reference package.json (inherit_dependencies defaults true).
 package_patches:
