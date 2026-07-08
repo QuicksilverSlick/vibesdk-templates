@@ -3,19 +3,12 @@ description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) datab
 base_reference: "vite-reference"
 projectType: app
 
-# Disabled pending a clean end-to-end validation. Two real blockers were found
-# and fixed during the soak: (1) sandbox zip-extract corruption -> dreamforge-cf
-# #225 (atomic write + dedup); (2) the preview dev server never bound its port
-# because @cloudflare/vite-plugin was instantiated bare so remote bindings were
-# never enabled -> fixed here with cloudflare({ remoteBindings: true }) in
-# reference/vite-reference/vite.config.ts. Both are deployed. The validation
-# build was then blocked by a SEPARATE, platform-wide transient: a cold-DO race
-# in the agent lifecycle (this.behavior undefined because initialize() ran before
-# onStart() finished) that fails code-gen with "Cannot read properties of
-# undefined (reading initialize)" — unrelated to this template. Re-enable +
-# run one clean test build once that race clears (any successful build confirms
-# it) and confirm the preview loads + proxy calls appear.
-disabled: true
+# Re-enabled for a clean validation build. Both real blockers are fixed +
+# deployed: zip-extract corruption (dreamforge-cf #225) and the preview dev
+# server never binding its port (cloudflare({ remoteBindings: true }) in
+# reference/vite-reference/vite.config.ts). The prior validation was blocked by
+# a transient cold-DO agent-lifecycle race (unrelated); DOs are warm now.
+disabled: false
 
 # Deep-merged into the reference package.json (inherit_dependencies defaults true).
 package_patches:
