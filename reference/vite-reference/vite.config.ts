@@ -109,7 +109,12 @@ function reloadTriggerPlugin() {
 export default ({ mode }: { mode: string }) => {
   const env = loadEnv(mode, process.cwd());
   return defineConfig({
-    plugins: [react(), cloudflare(), watchDependenciesPlugin(), reloadTriggerPlugin()],
+    // remoteBindings:true is a per-binding opt-in — only bindings marked
+    // `remote: true` in wrangler.jsonc connect to real Cloudflare resources; it
+    // is a no-op for templates whose bindings are all local. It is REQUIRED for
+    // the D1 flagship: without it the plugin cannot handle its `remote: true` DB
+    // binding and Vite fails to boot the worker (dev server never binds its port).
+    plugins: [react(), cloudflare({ remoteBindings: true }), watchDependenciesPlugin(), reloadTriggerPlugin()],
     build: {
       minify: true,
       sourcemap: "inline", // Use inline source maps for better error reporting
