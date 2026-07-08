@@ -3,16 +3,12 @@ description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) datab
 base_reference: "vite-reference"
 projectType: app
 
-# RE-DISABLED after the go-live soak: the sandbox failed to extract this
-# template in the container ("NNNNN extra bytes at beginning ... invalid zip
-# file with overlapped components") on every D1 build, so no preview could
-# start. The published R2 zip itself is valid (extracts cleanly); the corruption
-# is introduced by the sandbox's download-to-container chunked write, with the
-# growing byte count across retries pointing at an append-instead-of-truncate on
-# the larger (~167KB) D1 zip. Flip back to false only after that is fixed and a
-# fresh test build gets a working preview. The continuity infra (proxy, D1
-# provisioning, auth-secret delivery, CONT-4 restore) is all live and validated.
-disabled: true
+# Re-enabled after the sandbox zip-write race fix (dreamforge-cf: atomic temp
+# write + mv, dedup concurrent ensureTemplateExists). The earlier soak failed
+# because concurrent template-zip writes in the container corrupted the zip
+# ("extra bytes at beginning ... invalid zip"); that is fixed and deployed.
+# Flip back to true if a fresh test build still fails to reach a working preview.
+disabled: false
 
 # Deep-merged into the reference package.json (inherit_dependencies defaults true).
 package_patches:
