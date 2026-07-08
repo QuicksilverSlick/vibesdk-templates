@@ -3,12 +3,16 @@ description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) datab
 base_reference: "vite-reference"
 projectType: app
 
-# Re-enabled after the sandbox zip-write race fix (dreamforge-cf: atomic temp
-# write + mv, dedup concurrent ensureTemplateExists). The earlier soak failed
-# because concurrent template-zip writes in the container corrupted the zip
-# ("extra bytes at beginning ... invalid zip"); that is fixed and deployed.
-# Flip back to true if a fresh test build still fails to reach a working preview.
-disabled: false
+# RE-DISABLED again. The zip-extract corruption IS fixed (dreamforge-cf #225 —
+# 0 extract errors across many builds), but a SECOND, separate blocker remains:
+# the preview container extracts the template yet never serves — the sandbox
+# reports "not listening on 8001" on a ~9s retry loop, and ZERO calls reach the
+# CF authorizing proxy, so the dev server either is not starting or binds the
+# wrong port, and the remote-binding session never engages. Needs a focused
+# investigation of the D1 template dev-server startup + PORT + the vite-plugin
+# remote-binding path before re-enabling. Everything upstream is validated:
+# selection, per-app D1 provisioning, template integrity, and the zip fix.
+disabled: true
 
 # Deep-merged into the reference package.json (inherit_dependencies defaults true).
 package_patches:
