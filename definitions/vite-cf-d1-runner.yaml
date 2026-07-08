@@ -3,12 +3,15 @@ description: "Vite/React app on Cloudflare Workers with a real D1 (SQLite) datab
 base_reference: "vite-reference"
 projectType: app
 
-# Disabled until CONT-2 (main repo) provisions the per-app D1, applies the
-# migration, and delivers BETTER_AUTH_SECRET/BETTER_AUTH_URL into the sandbox.
-# The catalog generator omits disabled templates entirely, so the selector
-# never offers it and no build lands on a template it can't yet provision.
-# Flip to false to begin the flag-gated soak once CONT-2 is live.
-disabled: true
+# Enabled for the flag-gated soak. The continuity arc is code-complete:
+# CONT-2 provisions + records the per-app D1 and delivers BETTER_AUTH_SECRET;
+# CONT-3B delivers BETTER_AUTH_URL at deploy; CONT-3A's authorizing proxy lets
+# the container's remote-binding preview reach Cloudflare with a scoped token;
+# CONT-4 gives the owner a Time Travel restore. Merge this ONLY once the proxy
+# infra is live (CF_PROXY_JWT_SECRET + CLOUDFLARE_API_PROXY_URL + the cf-proxy
+# custom domain) and the templates-repo deploy Actions secrets are set —
+# otherwise the selector offers a template whose preview can't provision.
+disabled: false
 
 # Deep-merged into the reference package.json (inherit_dependencies defaults true).
 package_patches:
