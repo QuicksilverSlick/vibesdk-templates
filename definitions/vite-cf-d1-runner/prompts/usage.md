@@ -25,7 +25,7 @@ When you do need it:
 ## The database
 - **Schema**: `worker/db/schema.ts` (Drizzle). Add tables here. Foreign-key user-owned rows to `user.id`.
 - **Queries**: `const db = drizzle(c.env.DB, { schema });` then Drizzle query builder (`db.select()...`, `db.insert()...`). Never hand-write raw SQL with string interpolation.
-- **Migrations**: after changing the schema, run `bun run db:generate` (writes SQL to `migrations/`) then `bun run db:migrate:remote` (applies it to the real D1). The initial migration (`migrations/0001_init.sql`) is already applied at provision time.
+- **Migrations**: after changing the schema, run `bun run db:generate` (writes SQL to `migrations/`) — that is ALL. The platform applies every file in `migrations/` to the real D1 automatically on the next deploy (including the initial `0001_init.sql`). **NEVER run `bun run db:migrate:remote` in this environment** — it cannot reach the Cloudflare API from here and will always fail; do not try to fix or work around that failure. Never edit an existing migration file in place (applied-migration tracking is by filename); schema changes always get a NEW `migrations/000N_*.sql` via `db:generate`.
 
 ## Development Restrictions
 - **CANNOT modify `wrangler.jsonc`** — the `DB` binding, `remote: true`, and `nodejs_compat` are required and hidden from you.

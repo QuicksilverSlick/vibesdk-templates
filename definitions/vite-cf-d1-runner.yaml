@@ -14,7 +14,11 @@ disabled: false
 package_patches:
   name: "vite-cf-d1-runner"
   dependencies:
-    better-auth: "^1.6.23"
+    # Pinned exact: ^1.6.x will auto-resolve to 1.7.x once it leaves RC, and
+    # the shipped migrations/0001_init.sql is generated against the 1.6 core
+    # schema. On any bump: regenerate (`npx @better-auth/cli generate` +
+    # `drizzle-kit generate`) and ship any diff as a NEW migrations/000N file.
+    better-auth: "1.6.23"
     drizzle-orm: "^0.45.2"
   devDependencies:
     drizzle-kit: "^0.31.10"
