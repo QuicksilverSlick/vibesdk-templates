@@ -18,9 +18,14 @@ package_patches:
     drizzle-orm: "^0.45.2"
   devDependencies:
     drizzle-kit: "^0.31.10"
-    # Pinned exact: remote bindings require the current toolchain, and floating
-    # these versions has broken template builds before.
-    "@cloudflare/vite-plugin": "1.43.0"
+    # Pinned exact. UPPER-BOUNDED by the container runtime: @cloudflare/vite-plugin
+    # >= ~1.38 imports `registerHooks` from `node:module`, which the sandbox
+    # container's bun (cloudflare/sandbox:0.5.6) does NOT provide — vite then fails
+    # to load its config and the dev server crash-loops (exit 1) and never binds
+    # its port. 1.37.1 is the newest version that still exposes top-level
+    # `remoteBindings` (required for the D1 remote binding) WITHOUT that import.
+    # Do NOT bump past 1.37.x until the container's bun ships module.registerHooks.
+    "@cloudflare/vite-plugin": "1.37.1"
     wrangler: "4.107.0"
   scripts:
     db:generate: "drizzle-kit generate"
