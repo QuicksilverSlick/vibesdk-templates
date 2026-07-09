@@ -18,25 +18,35 @@ import * as schema from './db/schema';
  *
  * The SAME build is served at two hosts: its deployed host and its sandbox
  * preview host (both under `app.getdreamforge.com`). In production the platform
- * injects the exact origin as an https `BETTER_AUTH_URL` at deploy — use it. In
- * the preview sandbox the host is not known ahead of time and `BETTER_AUTH_URL`
- * is still the `http://localhost` dev default, so derive the origin from the
- * request host, accepting it only when it is one of our preview subdomains (a
- * spoofed Host can't reach this worker past Cloudflare routing, but validating
- * it keeps the fallback safe). Local `bun dev` / any unrecognized host falls
- * back to `BETTER_AUTH_URL`.
+ * injects the exact origin as an https `BETTER_AUTH_URL` at deploy — use it.
+ *
+ * In the preview sandbox the platform proxy REWRITES the request URL to
+ * `http://localhost:<port>` before it reaches this worker, so `request.url`
+ * never carries the public host — the proxy delivers it in `X-Forwarded-Host`
+ * instead (and the proxy's value always overrides anything client-supplied,
+ * so within the sandbox this header is authoritative). Accept it only when it
+ * is one of our platform subdomains, and pin the scheme to https: those hosts
+ * are only ever publicly served over TLS, and the browser's Origin header is
+ * `https://…` — better-auth's trusted-origin comparison is exact-match
+ * including scheme, so deriving `http://…` (or falling back to the localhost
+ * default, as before this fix) makes every cookie-carrying signup 403 with
+ * "Invalid origin". Local `bun dev` / any unrecognized host falls back to
+ * `BETTER_AUTH_URL`.
  */
 function resolveOwnOrigin(env: Env, request: Request): string {
 	if (/^https:\/\//i.test(env.BETTER_AUTH_URL ?? '')) {
 		return env.BETTER_AUTH_URL;
 	}
-	try {
-		const { hostname, origin } = new URL(request.url);
-		if (hostname === 'app.getdreamforge.com' || hostname.endsWith('.app.getdreamforge.com')) {
-			return origin;
+	let host = request.headers.get('X-Forwarded-Host');
+	if (!host) {
+		try {
+			host = new URL(request.url).hostname;
+		} catch {
+			host = null;
 		}
-	} catch {
-		// Malformed URL — fall back to the configured default.
+	}
+	if (host && (host === 'app.getdreamforge.com' || host.endsWith('.app.getdreamforge.com'))) {
+		return `https://${host}`;
 	}
 	return env.BETTER_AUTH_URL;
 }
